@@ -12,3 +12,4 @@ class Job(Base):
     tech_stack = Column(String, nullable=False)
     description = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    salary = Column(String, nullable=True)
