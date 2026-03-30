@@ -34,12 +34,23 @@ def create_job(
     db.refresh(new_job)
     return new_job
 
-@router.get("/{job_id}", response_model=JobResponse)
-def get_job(job_id: int, db: Session = Depends(get_db)):
-    job = db.query(Job).filter(Job.id == job_id).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Oglas nije pronađen")
-    return job
+@router.get("/", response_model=List[JobResponse])
+def get_jobs(
+    tech: Optional[str] = Query(None, description="Filtriraj po tech stacku"),
+    location: Optional[str] = Query(None, description="Filtriraj po lokaciji"),
+    page: int = Query(1, ge=1, description="Broj stranice"),
+    limit: int = Query(10, ge=1, le=100, description="Broj oglasa po stranici"),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Job)
+    if tech:
+        query = query.filter(Job.tech_stack.ilike(f"%{tech}%"))
+    if location:
+        query = query.filter(Job.location.ilike(f"%{location}%"))
+    
+    offset = (page - 1) * limit
+    jobs = query.offset(offset).limit(limit).all()
+    return jobs
 
 @router.put("/{job_id}", response_model=JobResponse)
 def update_job(job_id: int, updated: JobCreate, db: Session = Depends(get_db)):

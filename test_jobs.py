@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 from main import app
+import uuid
 
 client = TestClient(app)
 
@@ -19,12 +20,13 @@ def test_create_job_unauthorized():
     assert response.status_code == 401
 
 def test_register_user():
+    unique_email = f"test_{uuid.uuid4()}@test.com"
     response = client.post("/auth/register", json={
-        "email": "test@test.com",
+        "email": unique_email,
         "password": "test123"
     })
     assert response.status_code == 200
-    assert response.json()["email"] == "test@test.com"
+    assert response.json()["email"] == unique_email
 
 def test_login_user():
     response = client.post("/auth/login", json={
@@ -64,3 +66,8 @@ def test_get_jobs():
 def test_search_jobs():
     response = client.get("/jobs/?tech=Python")
     assert response.status_code == 200
+
+def test_pagination():
+    response = client.get("/jobs/?page=1&limit=5")
+    assert response.status_code == 200
+    assert len(response.json()) <= 5
