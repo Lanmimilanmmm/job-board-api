@@ -4,6 +4,9 @@ import uuid
 
 client = TestClient(app)
 
+TEST_EMAIL = f"test_{uuid.uuid4()}@test.com"
+TEST_PASSWORD = "test123"
+
 def test_root():
     response = client.get("/")
     assert response.status_code == 200
@@ -20,32 +23,29 @@ def test_create_job_unauthorized():
     assert response.status_code == 401
 
 def test_register_user():
-    unique_email = f"test_{uuid.uuid4()}@test.com"
     response = client.post("/auth/register", json={
-        "email": unique_email,
-        "password": "test123"
+        "email": TEST_EMAIL,
+        "password": TEST_PASSWORD
     })
     assert response.status_code == 200
-    assert response.json()["email"] == unique_email
+    assert response.json()["email"] == TEST_EMAIL
 
 def test_login_user():
     response = client.post("/auth/login", json={
-        "email": "test@test.com",
-        "password": "test123"
+        "email": TEST_EMAIL,
+        "password": TEST_PASSWORD
     })
     assert response.status_code == 200
     assert "access_token" in response.json()
 
 def test_create_job_authorized():
-    # Login
     login = client.post("/auth/login", json={
-        "email": "test@test.com",
-        "password": "test123"
+        "email": TEST_EMAIL,
+        "password": TEST_PASSWORD
     })
     token = login.json()["access_token"]
 
-    # Dodaj oglas sa tokenom
-    response = client.post("/jobs/", 
+    response = client.post("/jobs/",
         json={
             "title": "Python Developer",
             "company": "Test Firma",
